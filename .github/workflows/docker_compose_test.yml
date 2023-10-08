@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:   
+  docker:
+    name: Docker compose build and run
+    # timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v1.3
+      with:
+        envkey_REDIS_URI: ${{ secrets.REDIS_URI}}
+        envkey_SUPABASE_HOST: ${{ secrets.SUPABASE_HOST}}
+        envkey_SUPABASE_DB: ${{ secrets.SUPABASE_DB}}
+        envkey_SUPABASE_USER: ${{ secrets.SUPABASE_USER}}
+        envkey_SUPABASE_PORT: ${{ secrets.SUPABASE_PORT}}
+        envkey_SUPABASE_PASSWD: ${{ secrets.SUPABASE_PASSWD}}
+        envkey_MAIL_USERNAME: ${{ secrets.MAIL_USERNAME}}
+        envkey_MAIL_PASSWD: ${{ secrets.MAIL_PASSWD}}
+        envkey_REC_MAIL_USERNAME: ${{ secrets.REC_MAIL_USERNAME}}
+        # directory: /home/runner/work/hbd/hbd/.env
+
+    - name: Start containers
+      run: docker-compose -f "docker-compose.yml" up -d --build
+
+    - name: Stop containers
+      if: always()
+      run: docker-compose -f "docker-compose.yml" down
